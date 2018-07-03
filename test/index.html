@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>@stardazed/utf8 test</title>
+	<script src="../dist/sd-utf8.umd.js"></script>
+</head>
+<body>
+<h1>@stardazed/utf8 test</h1>
+<p>These are some core tests to begin with, check the console output if there are failures.</p>
+<p>NOTE: this can take quite a while, up to several minutes based on your computer speed.</p>
+<p><button>Run Tests</button></p>
+<pre></pre>
+<script>
+const { utf8Encode, utf8Decode } = sdUTF8;
+
+let passes = 0;
+let fails = 0;
+
+const u8 = (arr) => new Uint8Array(arr);
+
+function isPlaceholderUTF8(buf) {
+	return (buf.length === 3 && buf[0] === 0xEF && buf[1] === 0xBF && buf[2] === 0xBD);
+}
+
+function isPlaceholderChar(c) {
+	return c === "�"
+}
+
+function arrayEqual(a, b) {
+	return a.length === b.length && a.every((av, index) => av === b[index]);
+}
+
+function asBytes(s) {
+	return s.split("").map(c => c.charCodeAt(0));
+}
+
+function testGoodChar(ac, str) {
+	const encodedNative = utf8Encode(str);
+	const encoded = utf8Encode(str, true);
+	const decodedNative = utf8Decode(encoded);
+	const decoded = utf8Decode(encoded, true);
+	if (decodedNative === decoded && arrayEqual(encodedNative, encoded) && !isPlaceholderChar(decoded)) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", str, ac.toString(16), encoded, encodedNative, decoded, decodedNative, decodedNative === decoded, asBytes(decoded), asBytes(decodedNative), arrayEqual(encodedNative, encoded), !isPlaceholderChar(decoded));
+	}
+}
+
+function testBadChar(ac, str) {
+	const encodedNative = utf8Encode(str);
+	const encoded = utf8Encode(str, true);
+	const decodedNative = utf8Decode(encoded);
+	const decoded = utf8Decode(encoded, true);
+	if (decodedNative === decoded && arrayEqual(encodedNative, encoded) && isPlaceholderChar(decoded)) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", str, ac.toString(16), encoded, encodedNative, decoded, decodedNative, decodedNative === decoded, asBytes(decoded), asBytes(decodedNative), arrayEqual(encodedNative, encoded), isPlaceholderChar(decoded));
+	}
+}
+
+function testBadDecodeChar(buf) {
+	const decodedNative = utf8Decode(buf);
+	const decoded = utf8Decode(buf, true);
+	if (isPlaceholderChar(decoded[0]) && (decodedNative === decoded)) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", buf, asBytes(decoded), asBytes(decodedNative));
+	}
+}
+
+function printResult() {
+	const out = document.querySelector("pre");
+	out.textContent = `Passes: ${passes}
+FAILURES: ${fails}`;
+}
+
+function runTest() {
+	passes = 0;
+	fails = 0;
+
+	// lower BMP characters
+	for (let ac = 0; ac < 0xD800; ++ac) {
+		testGoodChar(ac, String.fromCharCode(ac));
+	}
+	// utf-16 surrogate pair units
+	for (let ac = 0xD800; ac < 0xDFFF; ++ac) {
+		testBadChar(ac, String.fromCharCode(ac));
+	}
+	// higher BMP characters
+	for (let ac = 0xE000; ac < 0xFFFC; ++ac) {
+		testGoodChar(ac, String.fromCharCode(ac));
+	}
+	testBadChar(0xFFFD, String.fromCharCode(0xFFFD)); // the placeholder char itself
+	testGoodChar(0xFFFE, String.fromCharCode(0xFFFE));
+	testGoodChar(0xFFFF, String.fromCharCode(0xFFFF));
+
+	// all non-BMP characters (> 1M)
+	let lo = 0;
+	let hi = 0;
+	for (let ac = 0x10000; ac < 0x10FFFF; ++ac) {
+		lo = ((ac - 0x10000) >> 10) | 0xD800;
+		hi = (ac & 0x3FF) | 0xDC00;
+		testGoodChar(ac, String.fromCharCode(hi, lo));
+	}
+
+	// incomplete or incorrect continuations
+	testBadDecodeChar(u8([0xC0]));
+	testBadDecodeChar(u8([0xC0, 0x20]));
+	testBadDecodeChar(u8([0xE0]));
+	testBadDecodeChar(u8([0xE0, 0x80]));
+	testBadDecodeChar(u8([0xE0, 0x20]));
+	testBadDecodeChar(u8([0xE0, 0x20, 0x20]));
+	testBadDecodeChar(u8([0xE0, 0x80, 0x20]));
+	testBadDecodeChar(u8([0xF0]));
+	testBadDecodeChar(u8([0xF0, 0x80]));
+	testBadDecodeChar(u8([0xF0, 0x20]));
+	testBadDecodeChar(u8([0xF0, 0x80, 0x80]));
+	testBadDecodeChar(u8([0xF0, 0x80, 0x20]));
+	testBadDecodeChar(u8([0xF0, 0x80, 0x80, 0x20]));
+	testBadDecodeChar(u8([0xF0, 0x80, 0x20, 0x20]));
+	testBadDecodeChar(u8([0xF0, 0x80, 0x20, 0x20]));
+	testBadDecodeChar(u8([0xF0, 0x20, 0x20, 0x20]));
+	for (let b = 0x80; b < 0xBF; ++b) {
+		testBadDecodeChar(u8([b]))
+	}
+
+	printResult();
+}
+
+document.querySelector("button").onclick = runTest;
+
+</script>
+</body>
+</html>
