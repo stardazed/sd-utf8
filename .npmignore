@@ -1,5 +1,6 @@
 build
 src
+test
 rollup.config.js
 tsconfig.json
 shrinkwrap.yaml

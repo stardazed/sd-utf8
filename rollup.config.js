@@ -1,6 +1,6 @@
 // @ts-check
 import typescript from "typescript";
-import tsc from "rollup-plugin-typescript";
+import tsc from "rollup-plugin-typescript2";
 
 const banner = `/**
  * @stardazed/utf8 - encode and decode utf8 sequences
@@ -30,6 +30,7 @@ export default [
 		plugins: [
 			tsc({
 				typescript,
+				cacheRoot: "build",
 				include: ["src/**/*.ts"],
 			})
 		]
