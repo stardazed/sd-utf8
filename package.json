@@ -1,7 +1,7 @@
 {
 	"name": "@stardazed/utf8",
 	"description": "Encode and decode utf8 sequences",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/stardazed/sd-utf8.git"
