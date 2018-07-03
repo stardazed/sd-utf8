@@ -12,6 +12,8 @@
 <p><button>Run Tests</button></p>
 <pre></pre>
 <script>
+// @ts-check
+// @ts-ignore
 const { utf8Encode, utf8Decode } = sdUTF8;
 
 let passes = 0;
@@ -35,11 +37,20 @@ function asBytes(s) {
 	return s.split("").map(c => c.charCodeAt(0));
 }
 
+function utf8EncodePoly(str) {
+	return utf8Encode(str, { forceUsePolyfill: true });
+}
+
+function utf8DecodePoly(buf) {
+	return utf8Decode(buf, { forceUsePolyfill: true });
+}
+
+
 function testGoodChar(ac, str) {
 	const encodedNative = utf8Encode(str);
-	const encoded = utf8Encode(str, true);
+	const encoded = utf8EncodePoly(str);
 	const decodedNative = utf8Decode(encoded);
-	const decoded = utf8Decode(encoded, true);
+	const decoded = utf8DecodePoly(encoded);
 	if (decodedNative === decoded && arrayEqual(encodedNative, encoded) && !isPlaceholderChar(decoded)) {
 		passes += 1;
 	}
@@ -51,9 +62,9 @@ function testGoodChar(ac, str) {
 
 function testBadChar(ac, str) {
 	const encodedNative = utf8Encode(str);
-	const encoded = utf8Encode(str, true);
+	const encoded = utf8EncodePoly(str);
 	const decodedNative = utf8Decode(encoded);
-	const decoded = utf8Decode(encoded, true);
+	const decoded = utf8DecodePoly(encoded);
 	if (decodedNative === decoded && arrayEqual(encodedNative, encoded) && isPlaceholderChar(decoded)) {
 		passes += 1;
 	}
@@ -65,7 +76,7 @@ function testBadChar(ac, str) {
 
 function testBadDecodeChar(buf) {
 	const decodedNative = utf8Decode(buf);
-	const decoded = utf8Decode(buf, true);
+	const decoded = utf8DecodePoly(buf);
 	if (isPlaceholderChar(decoded[0]) && (decodedNative === decoded)) {
 		passes += 1;
 	}
@@ -77,16 +88,78 @@ function testBadDecodeChar(buf) {
 
 function testString(str) {
 	const encodedNative = utf8Encode(str);
-	const encoded = utf8Encode(str, true);
+	const encoded = utf8EncodePoly(str);
 	const decodedNative = utf8Decode(encoded);
-	const decoded = utf8Decode(encoded, true);
+	const decoded = utf8DecodePoly(encoded);
 	if (decodedNative === decoded && arrayEqual(encodedNative, encoded)) {
 		passes += 1;
 		console.info("String", decoded);
 	}
 	else {
 		fails += 1;
-		console.error("FAIL", str, ac.toString(16), encoded, encodedNative, decoded, decodedNative, decodedNative === decoded, asBytes(decoded), asBytes(decodedNative), arrayEqual(encodedNative, encoded));
+		console.error("FAIL", str, encoded, encodedNative, decoded, decodedNative, decodedNative === decoded, asBytes(decoded), asBytes(decodedNative), arrayEqual(encodedNative, encoded));
+	}
+}
+
+function testBOM() {
+	const bom = String.fromCharCode(0xFEFF);
+	const bomAtStart = utf8EncodePoly(bom);
+	const bomAtEnd = utf8EncodePoly("a\uFEFF");
+
+	if (arrayEqual(bomAtStart, utf8Encode(bom))) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", bomAtStart, utf8Encode(bom));
+	}
+
+	if (arrayEqual(bomAtEnd, utf8Encode("a\uFEFF"))) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", bomAtEnd, utf8Encode("a\uFEFF"));
+	}
+
+	const bomStartDecNative = utf8Decode(bomAtStart);
+	const bomStartDec = utf8DecodePoly(bomAtStart);
+	const bomEndDecNative = utf8Decode(bomAtEnd);
+	const bomEndDec = utf8DecodePoly(bomAtEnd);
+
+	if (bomStartDecNative === bomStartDec && bomStartDec.length === 0) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", asBytes(bomStartDec), asBytes(bomStartDecNative));
+	}
+	if (bomEndDecNative == bomEndDec && bomEndDec.length === 2) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", asBytes(bomEndDec), asBytes(bomEndDecNative));
+	}
+
+	const nobomStartDecNative = utf8Decode(bomAtStart, { ignoreBOM: true });
+	const nobomStartDec = utf8Decode(bomAtStart, { ignoreBOM: true, forceUsePolyfill: true });
+	const nobomEndDecNative = utf8Decode(bomAtEnd, { ignoreBOM: true });
+	const nobomEndDec = utf8Decode(bomAtEnd, { ignoreBOM: true, forceUsePolyfill: true });
+
+	if (nobomStartDecNative === nobomStartDec && nobomStartDec.length === 1) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", asBytes(nobomStartDec), asBytes(nobomStartDecNative));
+	}
+	if (nobomEndDecNative === nobomEndDec && nobomEndDec.length === 2) {
+		passes += 1;
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", asBytes(nobomEndDec), asBytes(nobomEndDecNative));
 	}
 }
 
@@ -110,7 +183,10 @@ function runTest() {
 	}
 	// higher BMP characters
 	for (let ac = 0xE000; ac < 0xFFFC; ++ac) {
-		testGoodChar(ac, String.fromCharCode(ac));
+		// the BOM is tested separately
+		if (ac !== 0xFEFF) {
+			testGoodChar(ac, String.fromCharCode(ac));
+		}
 	}
 	testBadChar(0xFFFD, String.fromCharCode(0xFFFD)); // the placeholder char itself
 	testGoodChar(0xFFFE, String.fromCharCode(0xFFFE));
@@ -148,6 +224,9 @@ function runTest() {
 
 	// strings
 	testString("data⚠️ to🌈 encode😺");
+
+	// byte order mark handling
+	testBOM();
 
 	printResult();
 }
