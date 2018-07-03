@@ -9,7 +9,8 @@
 <h1>@stardazed/utf8 test</h1>
 <p>These are some core tests to begin with, check the console output if there are failures.</p>
 <p>NOTE: this can take quite a while, up to several minutes based on your computer speed.</p>
-<p><button>Run Tests</button></p>
+<p><button id="test">Run Tests</button></p>
+<p><button id="perf">Speed Test</button></p>
 <pre></pre>
 <script>
 // @ts-check
@@ -231,8 +232,31 @@ function runTest() {
 	printResult();
 }
 
-document.querySelector("button").onclick = runTest;
 
+function speedTest() {
+	const source = "data⚠️ to🌈 encode😺".repeat(100000);
+
+	const p0 = performance.now();
+	const encP = utf8Encode(source, { forceUsePolyfill: true });
+	const p1 = performance.now();
+	const decP = utf8Decode(encP, { forceUsePolyfill: true });
+	const p2 = performance.now();
+
+	const n0 = performance.now();
+	const encN = utf8Encode(source);
+	const n1 = performance.now();
+	const decN = utf8Decode(encN);
+	const n2 = performance.now();
+
+	const out = document.querySelector("pre");
+	out.textContent = `Perf result (${(source.length / 1024 / 1024).toFixed(1)}MiB)
+Polyfill: Encode = ${(p1 - p0).toFixed(1)}ms, Decode = ${(p2 - p1).toFixed(1)}ms
+Native  : Encode = ${(n1 - n0).toFixed(1)}ms, Decode = ${(n2 - n1).toFixed(1)}ms
+`;
+}
+
+document.querySelector("button#test").onclick = runTest;
+document.querySelector("button#perf").onclick = speedTest;
 </script>
 </body>
 </html>
