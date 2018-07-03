@@ -30,7 +30,7 @@ const decoded2 = utf8Decode(encoded, { ignoreBOM: true });
 
 // For both encode and decode you can also specify you want to use
 // the polyfill implementation and not the native one.
-// This can be useful to have a perfectly consistent encoding arcoss
+// This can be useful to have a perfectly consistent encoding across
 // all platforms.
 const a = utf8Encode("stuff", { forceUsePolyfill: true });
 const b = utf8Decode(a, { forceUsePolyfill: true });
