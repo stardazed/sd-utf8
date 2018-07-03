@@ -9,7 +9,12 @@ let encoder_: TextEncoder | null | undefined;
 function getTextEncoder() {
 	if (encoder_ === undefined) {
 		try {
+			// ensure TextEncoder is present and what we expect it to be
 			encoder_ = new TextEncoder();
+			const buf = encoder_.encode("test");
+			if (! (buf instanceof Uint8Array) || buf.byteLength !== 4) {
+				throw new TypeError();
+			} 
 		}
 		catch (e) {
 			encoder_ = null;
@@ -22,7 +27,12 @@ let decoder_: TextDecoder | null | undefined;
 function getTextDecoder() {
 	if (decoder_ === undefined) {
 		try {
+			// ensure TextDecoder is present and what we expect it to be
 			decoder_ = new TextDecoder();
+			const str = decoder_.decode(new Uint8Array([116, 101, 115, 116]));
+			if ((typeof str !== "string") || str !== "test") {
+				throw new TypeError();
+			} 
 		}
 		catch (e) {
 			decoder_ = null;
