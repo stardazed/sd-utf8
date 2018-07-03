@@ -5,4 +5,7 @@
  * https://github.com/stardazed/sd-utf8
  */
 
+import { utf8Decode } from "./decoder";
+import { utf8Encode } from "./encoder";
 
+export { utf8Decode, utf8Encode };
