@@ -22,6 +22,18 @@ const encoded = utf8Encode("data⚠️ to🌈 encode😺");
 
 // takes an ArrayBuffer, a TypedArray or a DataView, returns a string
 const decoded = utf8Decode(encoded);
+
+// You can optionally skip handling of a byte order marker
+// this can fix an issue with a zero-width non-breaking-space
+// (codepoint 0xFEFF) being at the beginning of your stream.
+const decoded2 = utf8Decode(encoded, { ignoreBOM: true });
+
+// For both encode and decode you can also specify you want to use
+// the polyfill implementation and not the native one.
+// This can be useful to have a perfectly consistent encoding arcoss
+// all platforms.
+const a = utf8Encode("stuff", { forceUsePolyfill: true });
+const b = utf8Decode(a, { forceUsePolyfill: true });
 ```
 
 Copyright
