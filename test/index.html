@@ -75,6 +75,21 @@ function testBadDecodeChar(buf) {
 	}
 }
 
+function testString(str) {
+	const encodedNative = utf8Encode(str);
+	const encoded = utf8Encode(str, true);
+	const decodedNative = utf8Decode(encoded);
+	const decoded = utf8Decode(encoded, true);
+	if (decodedNative === decoded && arrayEqual(encodedNative, encoded)) {
+		passes += 1;
+		console.info("String", decoded);
+	}
+	else {
+		fails += 1;
+		console.error("FAIL", str, ac.toString(16), encoded, encodedNative, decoded, decodedNative, decodedNative === decoded, asBytes(decoded), asBytes(decodedNative), arrayEqual(encodedNative, encoded));
+	}
+}
+
 function printResult() {
 	const out = document.querySelector("pre");
 	out.textContent = `Passes: ${passes}
@@ -130,6 +145,9 @@ function runTest() {
 	for (let b = 0x80; b < 0xBF; ++b) {
 		testBadDecodeChar(u8([b]))
 	}
+
+	// strings
+	testString("data⚠️ to🌈 encode😺");
 
 	printResult();
 }
