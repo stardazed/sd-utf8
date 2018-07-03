@@ -12,4 +12,4 @@ export declare function utf8Encode(source: string, forceUsePolyfill?: boolean): 
  * @param forceUsePolyfill optional param to force using the polyfill implementation (mostly for testing)
  * @returns the decoded string
  */
-export declare function utf8Decode(source: ArrayBuffer | Uint8Array, forceUsePolyfill?: boolean): string;
+export declare function utf8Decode(source: ArrayBuffer | ArrayBufferView, forceUsePolyfill?: boolean): string;

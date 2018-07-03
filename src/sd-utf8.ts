@@ -86,6 +86,10 @@ function preflightEncode(source: string): StringSourceData {
  * @returns a buffer view with the encoded sequence
  */
 export function utf8Encode(source: string, forceUsePolyfill?: boolean) {
+	if (typeof source !== "string") {
+		throw new TypeError("source must be a string");
+	}
+
 	if (forceUsePolyfill !== true) {
 		const encoder = getTextEncoder();
 		if (encoder) {
@@ -153,19 +157,26 @@ function codeUnitsToString(codeunits: Uint16Array) {
  * @param forceUsePolyfill optional param to force using the polyfill implementation (mostly for testing)
  * @returns the decoded string
  */
-export function utf8Decode(source: ArrayBuffer | Uint8Array, forceUsePolyfill?: boolean) {
+export function utf8Decode(source: ArrayBuffer | ArrayBufferView, forceUsePolyfill?: boolean) {
 	if (forceUsePolyfill !== true) {
 		const decoder = getTextDecoder();
 		if (decoder) {
-			return decoder.decode(source);
+			return decoder.decode(source as (ArrayBuffer | Uint8Array)); // silence TS's pedantry
 		}
 	}
 
 	if (source instanceof ArrayBuffer) {
 		source = new Uint8Array(source);
 	}
-	const length = source.length;
-	if (source.length === 0) {
+	else if (! ArrayBuffer.isView(source)) {
+		throw new TypeError("source must be an ArrayBuffer, a TypedArray or a DataView");
+	}
+	else if (! (source instanceof Uint8Array)) {
+		// ensure we look at one byte at a time
+		source = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+	}
+	const length = source.byteLength;
+	if (length === 0) {
 		return "";
 	}
 
@@ -179,7 +190,7 @@ export function utf8Decode(source: ArrayBuffer | Uint8Array, forceUsePolyfill?: 
 	let mode = ScanMode.Next;
 
 	while (sx < length) {
-		const byte = source[sx];
+		const byte = (source as Uint8Array)[sx];
 		if (mode === ScanMode.Next) {
 			sequenceStart = sx;
 			if (byte < 0x80) {
