@@ -7,8 +7,8 @@ falls back to a polyfill implementation.
 Installation
 ------------
 ```
+pnpm add @stardazed/utf8
 npm install @stardazed/utf8
-pnpm install @stardazed/utf8
 yarn add @stardazed/utf8
 ```
 
@@ -38,7 +38,7 @@ const b = utf8Decode(a, { forceUsePolyfill: true });
 
 Copyright
 ---------
-© 2018 by Arthur Langereis (@zenmumbler)
+© 2018-Present by Arthur Langereis (@zenmumbler)
 
 License
 -------

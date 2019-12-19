@@ -1,7 +1,7 @@
 /**
  * utf8/decoder - decode an utf8 sequence to a string
  * Part of Stardazed
- * (c) 2018 by Arthur Langereis - @zenmumbler
+ * (c) 2018-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/sd-utf8
  */
 
@@ -34,7 +34,7 @@ const enum ScanMode {
  * @param forceUsePolyfill optional param to force using the polyfill implementation (mostly for testing)
  * @returns the decoded string
  */
-export function utf8Decode(source: ArrayBuffer | ArrayBufferView, options?: UTF8DecodeOptions) {
+export function utf8Decode(source: BufferSource, options?: UTF8DecodeOptions) {
 	if (typeof options === "undefined") {
 		options = {};
 	}
@@ -46,7 +46,7 @@ export function utf8Decode(source: ArrayBuffer | ArrayBufferView, options?: UTF8
 	if (forceUsePolyfill !== true) {
 		const decoder = getTextDecoder({ ignoreBOM });
 		if (decoder) {
-			return decoder.decode(source as (ArrayBuffer | Uint8Array)); // silence TS's pedantry
+			return decoder.decode(source);
 		}
 	}
 
@@ -67,7 +67,7 @@ export function utf8Decode(source: ArrayBuffer | ArrayBufferView, options?: UTF8
 
 	// worst case count of utf-16 codeunits from utf8 bytes
 	// if all bytes end up as placeholders
-	const codeunits = new Uint16Array(length); 
+	const codeunits = new Uint16Array(length);
 
 	let sx = 0, dx = 0;
 	let codepoint = 0;
@@ -159,7 +159,7 @@ function codeUnitsToString(codeunits: Uint16Array) {
 
 	while (unitsLeft > 0) {
 		const blockSize = Math.min(unitsLeft, maxBlockSize);
-		const str: string = String.fromCharCode.apply(null, codeunits.subarray(offset, offset + blockSize));
+		const str: string = String.fromCharCode.apply(null, codeunits.subarray(offset, offset + blockSize) as unknown as number[]);
 		strings.push(str);
 		offset += blockSize;
 		unitsLeft -= blockSize;

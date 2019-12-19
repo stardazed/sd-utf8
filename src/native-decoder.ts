@@ -1,7 +1,7 @@
 /**
  * utf8/native-decoder - create compliant native TextDecoder objects
  * Part of Stardazed
- * (c) 2018 by Arthur Langereis - @zenmumbler
+ * (c) 2018-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/sd-utf8
  */
 

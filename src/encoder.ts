@@ -1,7 +1,7 @@
 /**
  * utf8/encoder - encode a string as an utf8 sequence
  * Part of Stardazed
- * (c) 2018 by Arthur Langereis - @zenmumbler
+ * (c) 2018-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/sd-utf8
  */
 
@@ -78,7 +78,7 @@ function getTextEncoder() {
 			const buf = encoder_.encode("test");
 			if (! (buf instanceof Uint8Array) || buf.byteLength !== 4) {
 				throw new TypeError();
-			} 
+			}
 		}
 		catch (e) {
 			encoder_ = null;

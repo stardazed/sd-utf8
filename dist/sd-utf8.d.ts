@@ -1,7 +1,7 @@
 /**
  * @stardazed/utf8 - encode and decode utf8 sequences
  * Part of Stardazed
- * (c) 2018 by Arthur Langereis - @zenmumbler
+ * (c) 2018-Present by Arthur Langereis - @zenmumbler
  * https://github.com/stardazed/sd-utf8
  */
 
@@ -43,4 +43,4 @@ export interface UTF8DecodeOptions {
  * @param options optional settings to control decoding behaviour
  * @returns the decoded string
  */
-export declare function utf8Decode(source: ArrayBuffer | ArrayBufferView, options?: UTF8DecodeOptions): string;
+export declare function utf8Decode(source: BufferSource, options?: UTF8DecodeOptions): string;
